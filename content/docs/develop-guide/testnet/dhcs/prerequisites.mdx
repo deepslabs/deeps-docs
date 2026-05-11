@@ -1,0 +1,38 @@
+---
+title: Prerequisites
+description: Requirements for running DHC nodes on the testnet
+---
+
+<Callout type="error">
+NOTE that DHC nodes **MUST support Intel® SGX2** (TEE hardware).
+</Callout>
+
+## Basic Requirements
+
+* Operating system: Ubuntu 18.04
+* CPU: 8 cores and support SGX2
+* Memory: 32GB RAM
+* Storage: 2TB SSD
+* Network: At least 20Mb bandwidth with an independent IP address
+
+## Recommended Physical Machine
+
+* CPU: Intel Xeon Ice Lake (16 cores)
+* Memory: 64GB DDR4
+* Storage Disk: 2TB SSD
+* System Disk: 480GB SSD
+* Network: Gigabit Ethernet
+
+## Recommended Cloud Service
+
+* **AliCloud:** ecs.g7t, ecs.c7t, ecs.r7t
+
+  [Build an SGX Encrypted Computing Environment on AliCloud](https://www.alibabacloud.com/help/en/ecs/user-guide/build-an-sgx-encrypted-computing-environment?spm=a3c0i.23458820.2359477120.9.50747d3fD5V3nB)
+
+* **Tencent Cloud:** M6ce
+
+  [Tencent Cloud SGX Instance Documentation](https://www.tencentcloud.com/document/product/213/45510?lang=en)
+
+* **Microsoft Cloud:** DCsv3, DCdsv3
+
+  [Azure Confidential Computing Quick Start](https://learn.microsoft.com/en-us/azure/confidential-computing/quick-create-portal)

@@ -1,0 +1,94 @@
+---
+title: System Configuration
+description: SafeX chain parameters for developers and users
+---
+
+The chapter introduces the SafeX's chain parameters to facilitate developers or users to better understand the system.
+
+### Basic Chain Variable Parameters
+
+| Variable | Beta Mainnet Value | Beta Testnet Value |
+| -------- | ------------------ | ------------------ |
+| Block Time | 6 s | 3 s |
+| Chain Name | SafeX Beta Mainnet | SafeX Beta Testnet |
+| Token Symbol | DEF | tDEF |
+| Token Decimals | 18 | 18 |
+| Total Issuance | 1 billion | 1 billion |
+| Protocol ID | SafeX_beta_mainnet | SafeX_beta_testnet |
+| Maximum Block Weight | 2000000000000 | 2000000000000 |
+| Block Gas Limit | 60000000 | 60000000 |
+| Weight Per Gas | 25000 | 25000 |
+| EVM Chain ID | 10011 | 481 |
+| Gas fee ratio | 50%-miner / 20%-burn / 30%-treasure | 50%-miner / 20%-burn / 30%-treasure |
+| Existential Deposit | 0 | 0.0000000000000005 |
+
+### Validator Variable Parameters
+
+| Variable | Beta Mainnet Value | Beta Testnet Value |
+| -------- | ------------------ | ------------------ |
+| Epoch Duration | 100 block | 200 block |
+| Sessions Per Era | 24 | 3 |
+| Epoch | 10 min | 10 min |
+| Era | 4 h | 30 min |
+| Bonding Duration | 1 era | 1 era |
+| Maximum Nominations | 16 | 16 |
+| Maximum Validators | 100 | 100 |
+| Maximum Nominators | 1000 | 1000 |
+| Minimum Validator Bond | 100000 DEF | 100000 tDEF |
+| Minimum Nominator Bond | 100 DEF | 200 tDEF |
+
+### DHC Variable Parameters
+
+| Variable | Beta Mainnet Value | Beta Testnet Value |
+| -------- | ------------------ | ------------------ |
+| Incentive Epoch Duration | 300 block (30 min) | 600 block (30 min) |
+| Committee Epoch Blocks | 600 block (60 min) | 800 block (40 min) |
+| Committee Apply Blocks | 200 block | 300 block |
+| Committee Rvrf Blocks | 100 block | 100 block |
+| Committee Change Blocks | 200 block | 300 block |
+| Committee Slot Number | 10 | 10 |
+| Committee Maximum Duplicate | 3 | 3 |
+| Committee Maximum Members | 15 | 15 |
+| Committee Minimum Members | 5 | 5 |
+| Committee T,N ratio | gt 1 / 2 | ge 2/3 |
+| Committee Service Fee | 0.1 DEF | 1 tDEF |
+| Device Heartbeat Session | 10 min | 10 min |
+| Device Reward Session | 8 h | 60 min |
+| Device Minimum Mint Pledge | 100000 DEF | 20000 tDEF |
+| Device Offline Punish | 0.5 DEF | 10 tDEF |
+| Device Maximum Voter | 200 | 3000 |
+| Device Force Exit Punish | 1000 DEF | 1000 tDEF |
+| Device No heartbeats Allowed | 20 min | 20 min |
+| Device Force Exit Waiting | 100 min | 100 min |
+| Device Maximum Exit Waiting | 1 day | 1 day |
+| Device Maximum No Heartbeat | 20 min | 20 min |
+| Device Minimum Commission | 15% | 15% |
+| Device Minimum Vote Bond | 200 DEF | 200 tDEF |
+| Device Owner Minimum Bond | 100000 DEF | 20000 tDEF |
+| Device Base Reward Rate | 10% | 10% |
+| Device Minimum Exit Bond Rate | 95% | 80% |
+| Device Unlock Time | 1 day | 1 day |
+| Device Base Score | 0 | 0 |
+| Device Advanced Score | 0 | 0 |
+| Foundation Reward Rate | 75% | 75% |
+
+### Govern Variable Parameters
+
+| Variable | Beta Mainnet Value | Beta Testnet Value |
+| -------- | ------------------ | ------------------ |
+| Govern Preimage Base Deposit | 10000 DEF | 10000 tDEF |
+| Govern Preimage Byte Deposit | 0.001 DEF | 0.001 tDEF |
+| Govern Proposal Bond | 5 Permill | 5 Permill |
+| Govern Proposal Bond Minimum | 1 DEF | 1 tDEF |
+| Govern Spend Period | 1 day | 1 day |
+| Govern Maximum Approvals | 100 | 100 |
+| Govern Spend Payout Period | 30 days | 30 days |
+| Referenda Submission Deposit | 100 DEF | 100 tDEF |
+| Referenda Alarm Interval | 1 block | 1 block |
+| Referenda Undeciding Timeout | 28 days | 28 days |
+| Referenda Maximum Queued | 100 | 100 |
+| Conviction Vote Locking Period | 30 days | 30 days |
+| Conviction Maximum Votes | 512 | 512 |
+| Treasury Motion Duration | 3 days | 3 days |
+| Treasury Maximum Proposals | 100 | 100 |
+| Treasury Maximum Members | 100 | 100 |

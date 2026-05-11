@@ -1,0 +1,88 @@
+---
+title: RingVRF
+description: The Ring VRF algorithm used in SafeX for anonymous committee selection
+---
+
+## Overall
+
+In this project, committee members need to be rotated to achieve time-limited security for private key shards. Therefore, a method is required to select different batches of committee members.
+
+Simultaneously, the identities of committee members must be kept confidential to prevent them from colluding with each other and launching attacks against signatures.
+
+Thus, a method is needed to identify committee members holding specific private keys without revealing their identities.
+
+## Core Objectives
+
+1. **Secure Committee Rotation** — Enables periodic rotation of committee members holding private key shards for time-limited security.
+2. **Identity Confidentiality** — Prevents committee member identification to avoid collusion attacks on signatures.
+3. **Anonymous Key Ownership Proof** — Allows a member to prove their public key belongs to a specified set without revealing which one.
+
+> **In essence**: Ring VRF lets a user prove their public key is in set \{pk₀,...,pkₙ₋₁\} and generate verifiable random output `v` using private key `sk`, while **hiding their specific public key index** `ℓ`.
+
+So we introduced the **Ring VRF algorithm**.
+
+**The purpose of the Ring VRF algorithm is:** To allow a user to prove that the public key corresponding to their private key exists within a set of public keys, **without revealing which specific public key they possess.**
+
+$$
+RVRF = \{((pk_0, \ldots, pk_{N-1}, r, v), sk, \ell) \mid \ell \in \{0, \ldots, N-1\} \text{ s.t. } (pk_\ell, sk) \in R_{pk} \wedge v \leftarrow PRF_{sk}(r)\}
+$$
+
+The inputs to the algorithm are a **public set of public keys** and a **random number**.
+
+Pedersen commitment is used as the commitment scheme.
+
+The algorithm achieves its core functionality **by utilizing** the one-out-of-many protocol. Additionally, a **sub-proof** guarantees that both the commitment value `c` (from the Pedersen commitment) and the PRF result `v` correspond to the same private key (`sk`).
+
+## Algorithm Definition
+
+### Inputs / Outputs
+
+* **Input**:
+  * Public key set \{pk₀,...,pkₙ₋₁\}
+  * Random seed r ∈ \{0,1\}\*
+* **Output**:
+  * Random value `v = PRFₛₖ(r)`
+  * Proof `π` verifying both:
+    1. `pkₗ ∈ {pk₀,...,pkₙ₋₁}` for some `ℓ`
+    2. `v` was correctly generated from `sk`
+
+### Key Components
+
+**1. Pseudorandom Function (PRF)**
+
+* **Definition**: `PRFₛₖ(r) := H(r)ˢᵏ`
+* **Parameters**:
+  * Cyclic group `G` of prime order `q` with generator `g`
+  * Hash function `H: {0,1}* → G`
+* **Security**: Computes verifiable random output bound to `sk`.
+
+**2. Pedersen Commitment**
+
+* **Role**: Hides prover's index `ℓ` and secret `sk`.
+* **CRS**: Commitment key `ck = h` (public parameter).
+
+**3. One-out-of-Many Protocol**
+
+* **Core innovation**: Proves `∃ℓ` such that `pkₗ ∈ {pk₀,...,pkₙ₋₁}` without revealing `ℓ`.
+* **Achieves**: Full anonymity within the public key set.
+
+**4. Consistency Sub-Proof**
+
+* **Critical guarantee**: Links Pedersen commitment `c` and PRF output `v` to the **same private key `sk`**.
+* **Prevents**: Forgeries using mismatched keys.
+
+### Protocol Workflow
+
+**Prover (sk holder)**:
+
+1. Compute `v = H(r)ˢᵏ`
+2. Generate Pedersen commitment to `sk`
+3. Use **One-out-of-Many** to prove `pkₗ ∈ {pk₀,...,pkₙ₋₁}`
+4. Run **sub-proof** linking commitment and `v` to `sk`
+5. Output `(v, π)`
+
+**Verifier**:
+
+1. Validate One-out-of-Many proof (key membership)
+2. Verify consistency between commitment and `v`
+3. Confirm `v` is correctly derived from `r`

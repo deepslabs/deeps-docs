@@ -1,0 +1,26 @@
+---
+title: Recommend List
+description: Recommended hardware configurations for running DHC nodes
+---
+
+<Callout type="error">
+NOTE that DHCs **MUST support Intel® SGX2** (TEE hardware).
+
+[https://www.intel.com/content/www/us/en/support/articles/000058764/software/intel-security-products.html](https://www.intel.com/content/www/us/en/support/articles/000058764/software/intel-security-products.html)
+</Callout>
+
+### Physical Machine
+
+* CPU: Intel Xeon 4310 \* 1
+* Memory: 16G DDR4 ECC REG \* 8
+* Storage Disk: 1.92T SATA SSD \* 1
+* System Disk: 480G SATA SSD \* 1
+* Network: Gigabit Ethernet (Integrated RJ45 1000Gb \* 2 + Independent 1000Mbps \* 1)
+* Power: 2 hot-swappable supplies (Support 550W 1+1 redundancy)
+* Others: PCI-E Gen.4 x8 slots \* 2 / PCIe Gen.4 x16 slots \* 3
+
+### Cloud Service
+
+* AliCloud: g7t, c7t, r7t
+* Tencent Cloud: M6ce
+* Microsoft Cloud: DCsv3, DCdsv3

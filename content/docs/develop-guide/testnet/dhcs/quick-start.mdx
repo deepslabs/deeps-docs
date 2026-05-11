@@ -1,0 +1,72 @@
+---
+title: Quick Start
+description: An overview of running a node equipped with TEE to provide DHC services
+---
+
+An overview of running a node equipped with TEE to provide DHC services.
+
+### Download Binaries
+
+```shell
+git clone https://github.com/boolnetwork/mining-scripts.git
+cd mining-scripts
+```
+
+<Callout type="warn">
+Please ensure that your CPU supports SGX before carrying on. We found this [guide](https://www.intel.com/content/www/us/en/support/articles/000028173/processors.html) might be helpful to you.
+</Callout>
+
+### Configuration
+
+You should `cd configs` to configure several parameters before running further scripts. More specifically, except for the following parameter that should be paid special attention, the rest can be left as default values:
+
+* `keyring.toml`
+  * `identity`: The account that interacts with the Bool chain. It is the owner of the device and can perform multiple actions: signing transactions, registering devices, activating devices, receiving network rewards, etc.
+
+### Create An Identity Account
+
+Run the script:
+
+```shell
+docker run -it --rm boolnetwork/bnk-node:release identity generate
+```
+
+Outputs (sample):
+
+```shell
+Secret seed:      0x71235e1458ce9d140c8b8ded28ccc1e32e62c340aef51a65e1350a387dbe08a6
+Public key (hex): 0x0248e7f02dcc9f7061a090b67dede93d7381847e94955aee7996603d2225e9f77e
+Account ID:       0x34a5572cb21d34354e3091564d5edc7b791e9d5f
+```
+
+Request tBOL by sending USDT (supports BSC, Polygon, Optimism) to:
+
+**0x2000B83c88DC238B66A9E72e1B62C446d39ceef7**
+
+### General Commands
+
+Start the mining service via `docker-compose`.
+
+#### Start Mining
+
+```shell
+docker-compose up -d
+```
+
+#### Check Status
+
+```shell
+docker-compose logs
+```
+
+#### Stop Mining
+
+```shell
+docker-compose down
+```
+
+#### Updating
+
+```shell
+docker-compose pull
+```

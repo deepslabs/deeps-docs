@@ -1,0 +1,297 @@
+---
+title: Maintaining
+description: How to set up and maintain a DHC node service
+---
+
+### Create Wallet Account
+
+You can create a new wallet address directly within the browser plugin wallet like MetaMask and export the private key for later use.
+
+### Remote SSH Server Login
+
+To log into the SSH server via the account password set when purchasing the server and the public IPv4 address automatically assigned to the instance by the cloud service provider.
+
+**Option 1.** The built-in system terminal:
+
+* For Mac systems and native Linux systems, you can use the built-in terminal simulator to log in.
+* For Windows systems, you can use the built-in PowerShell tool to log in. You need to run PowerShell as administrator and install the OpenSSH plugin. See [Get started with OpenSSH for Windows](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=powershell).
+
+Login method: After opening the terminal, enter `ssh username@public_ip_address` (e.g. `ssh test@1.1.1.1`), then enter the password according to the prompt to complete the login.
+
+**Option 2.** Third-party SSH login tools:
+
+Third-party SSH login tools such as Xshell, PuTTY, SimpleRemote, Terminus, etc. You can refer to the relevant product tutorials to log in by yourself.
+
+**Option 3.** The built-in server method of cloud service:
+
+Different cloud service providers may provide their online server management consoles, through which you can log in graphically, such as logging in to EC2 instances on Amazon Web Services through the EC2 console page. Please refer to the help documents provided by each cloud service provider.
+
+### Install Runtime Environment
+
+```bash
+# Install the Docker runtime environment
+sudo curl -fsSL https://get.docker.com | bash -s docker
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Check if the Docker service started correctly
+sudo systemctl status docker
+# Use "ctrl+c" to resume command status
+sudo chmod 666 /var/run/docker.sock
+docker version
+
+# Download the docker-compose program
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+# Install docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+```
+
+### Create a Node Storage Directory and Startup File
+
+<Callout>
+Exposing the node's external IP is important to increase DHC's stability.
+
+```
+--public-addr <PUBLIC_ADDR>...
+    Public address that other nodes will use to connect to this node.
+    This can be used if there's a proxy in front of this node.
+    PUBLIC_ADDR example: "/ip4/8.8.8.8/tcp/30333"
+```
+</Callout>
+
+```bash
+# Create a node storage catalog
+mkdir -p bool-beta-testnode/node-data
+
+# Enter the node storage catalog
+cd bool-beta-testnode
+
+# Adjust user permissions
+chmod 777 node-data
+
+# Add a configuration file
+cat > docker-compose.yaml <<EOF
+version: "3"
+services:
+  node1:
+    image: safexn/sxn-node:pre-beta
+    restart: always
+    environment:
+      RUST_LOG: info
+    volumes:
+    - "./node-data:/data"
+    command: |
+      --validator
+      --enable-offchain-indexing true
+      --rpc-methods Unsafe
+      --unsafe-rpc-external
+      --rpc-cors all
+      --rpc-max-connections 100000
+      --pool-limit 100000
+      --pool-kbytes 2048000
+      --tx-ban-seconds 600
+      --ethapi=debug,trace,txpool
+      --chain beta_testnet
+      --public-addr <PUBLIC_ADDR>
+    ports:
+      - 9944:9944
+      - 30333:30333
+EOF
+
+# Start the service
+docker-compose up -d
+```
+
+Synchronizing blocks will take more time, and we provide snapshots to speed up chain startup. See [Run a chain via snapshot](/docs/user-guide/DHC-maintaining/run-a-chain-via-snapshot).
+
+To confirm whether the node has synchronized to the latest height, you can use the log command `docker-compose logs -f --tail 200 | grep finalized` to check if the `finalized` height has reached the `target` height. If it has, the synchronization is successful.
+
+<Callout>
+Some of the built-in terminals will recognize space characters as indent characters during code copying, which may lead to YAML program runtime errors. Please check and replace it.
+</Callout>
+
+### Configure the SGX Server
+
+```bash
+# Back to root catalog
+cd ..
+
+# Pull github repositories
+git clone https://github.com/safexn/sxn-mining-scripts.git
+
+# Install the sgx driver
+apt update
+apt install build-essential automake autoconf libtool wget python libssl-dev dkms
+wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu18.04-server/sgx_linux_x64_driver_1.41.bin
+bash sgx_linux_x64_driver_1.41.bin
+
+# View sgx status
+cd def-mining-scripts && ./sgx-detect
+```
+
+### Modify keyring.toml Configuration File
+
+Please check out the latest DHC bootnodes in advance and do the replacement if changed.
+
+<Callout>
+**`external_multiaddrs:`** Exposing the server's external IP is important, thereby increasing the reward.
+
+```
+example: external_multiaddrs = ["/ip4/127.0.0.1/tcp/38700"]
+```
+</Callout>
+
+```toml
+# Enter the configuration mode of keyring.toml file
+# vim configs/keyring.toml
+
+node_ws_url = "ws://127.0.0.1:9944"
+# import your wallet public address starting with "0x" and do the replacement
+device_owner = "0x0000000000000000000000000000000000000000"
+# database path
+db_path = "/host/data"
+# tokio console port
+console_port = 5555
+# This corresponds to using an image, epid=1, dcap=2
+attestation_style = 2
+exe_policy = { Multiply = { executors = 8 } }
+
+# database start option
+[db_option]
+create_if_missing = true
+atomic_flush = true
+
+[network_config]
+port = 38700
+boot_nodes = ["/ip4/172.210.130.200/tcp/38701/p2p/12D3KooWQBrkBWb3tLoUpxqXebxg1Eab24LfcFP3hv37ZF2c6qgz","/ip4/20.81.161.179/tcp/38701/p2p/12D3KooWMDqap7HMjA6nos1HpHpWt8JBcPepnZgYSd5PPmovAqD7"]
+share_peer_interval = 30
+only_global_ips = true
+protocol_id = "betatestnet"
+# external_multiaddrs = ["/ip4/127.0.0.1/tcp/38700"]
+```
+
+### Modify sgx\_default\_qcnl.conf File
+
+<Callout type="warn">
+Try the local solution [here](/docs/user-guide/DHC-maintaining/local-lan-configuration-for-sgx) if you can't find the solutions for the cloud services below.
+</Callout>
+
+```json
+// vim configs/sgx_default_qcnl.conf
+
+// Ali Cloud
+// [Region-ID] is the region of the server you purchased, like cn-hongkong etc.
+// refer to https://help.aliyun.com/document_detail/140601.html
+{
+  "pccs_url": "https://sgx-dcap-server.[Region-ID].aliyuncs.com/sgx/certification/v3/",
+  "use_secure_cert": true,
+  "retry_times": 6,
+  "retry_delay": 10,
+  "pck_cache_expire_hours": 168
+}
+
+// Tencent Cloud
+{
+  "pccs_url": "https://sgx-dcap-server-tc.bj.tencent.cn/sgx/certification/v3/",
+  "use_secure_cert": true,
+  "retry_times": 6,
+  "retry_delay": 10,
+  "pck_cache_expire_hours": 168,
+  "verify_collateral_cache_expire_hours": 168
+}
+
+// Microsoft Cloud
+{
+  "pccs_url": "https://global.acccache.azure.net/sgx/certification/v3/",
+  "use_secure_cert": true,
+  "retry_times": 6,
+  "retry_delay": 10,
+  "pck_cache_expire_hours": 168
+}
+```
+
+### Modify docker-compose File (Optional)
+
+You need to change the configuration here and replace the `<version_no>` only when the official image version is updated. Please refer to the [official release link](https://github.com/safexn/sxn-mining-scripts/blob/master/docker-compose.yml) for the exact version information.
+
+<Callout>
+**Before changing version numbers, make sure your device is in Standby status, or not registered. Otherwise, you will be punished.**
+</Callout>
+
+The latest version of the image is: [**v0.12.19**](https://github.com/safexn/sxn-mining-scripts/blob/master/docker-compose.yml#L5)
+
+```yaml
+# vim docker-compose.yaml
+
+version: "3"
+services:
+  occlum-keyring:
+    image: safenx/sxn-occlum-keyring:<version_no>
+    restart: always
+    network_mode: "host"
+    environment:
+      RUST_LOG: info,p2p_net=debug
+    volumes:
+      - ./configs:/configs
+      - ./data:/root/occlum_instance/data
+      - ./configs/sgx_default_qcnl.conf:/etc/sgx_default_qcnl.conf
+    devices:
+      - /dev/sgx/enclave:/dev/sgx/enclave
+      - /dev/sgx/provision:/dev/sgx/provision
+    command: bash -c 'cp /configs/keyring.toml /root/occlum_instance; apt update;apt install curl -y;source /root/.bashrc; cd /root/occlum_instance; occlum print mrsigner; occlum print mrenclave; occlum run /bin/bnk-watcher run /host/keyring.toml'
+```
+
+### Start DHC Service
+
+```bash
+# Start DHC service
+docker-compose up -d
+
+# View node service Logs
+docker-compose logs --tail 200 -f
+
+# Check P2P connection Logs
+docker-compose logs --tail 200 -f | grep 'Current peers'
+```
+
+### Update Device Version
+
+Please maintain your image of the DHC server by updating it with the latest official version.
+
+#### 1. Exit the Service
+
+Device upgrades must be performed on **Standby** status.
+
+If the device is on "Serving" status, it must be exited before starting the upgrade. If the device is on "Exiting" status, wait up to one day until the process is complete before proceeding.
+
+#### 2. Update the Script File
+
+```bash
+# Shut down the script and back up your data
+docker-compose down && mv data/ data-bak/
+
+# Replace the image version of the device
+# 1.0.x is your current version and 1.0.1 is the latest version
+sed -ri 's/1.0.x/1.0.1/g' docker-compose.yaml
+
+# Restart the service
+docker-compose up -d
+```
+
+Then check out the version of your device on the [Node Explorer](https://dhc.boolscan.com/beta_testnet/).
+
+#### 3. Rejoin the Service
+
+You can join the service again after all the steps above are done and wait until the device changes to "Serving" status.
+
+#### 4. Remove Backup Data (Optional)
+
+```bash
+rm -rf data-bak/
+```
+
+### Case Study
+
+If you're facing problems in the setup process, try to find a solution in the [Case Study](/docs/user-guide/case-study).

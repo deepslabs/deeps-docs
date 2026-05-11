@@ -1,0 +1,10 @@
+{
+  "title": "Develop Guide",
+  "pages": [
+    "network-configuration",
+    "system-configuration",
+    "wallet-setup",
+    "hardware",
+    "testnet"
+  ]
+}

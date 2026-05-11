@@ -1,0 +1,88 @@
+---
+title: Case Study
+description: Common issues and solutions when setting up DHC nodes
+---
+
+### Case 1
+
+```jsx
+git clone https://github.com/occlum/enable_rdfsbase.git
+cd enable_rdfsbase
+make && make install  # if still error, remake && reinstall
+```
+
+### Case 2
+
+* Mirror is incorrect.
+* Curl is not installed in the container.
+
+### Case 3
+
+* Install curl within the container.
+* Missing `sgx_default_gcnl.conf` or `sgx_default_qcnl.conf` file.
+
+### Case 4
+
+* Mirror version is not correct, please check the mirror ID.
+* Wrong version.
+
+### Case 5
+
+Mirroring is wrong, this time apply epid mirroring on Azure.
+
+### Case 6
+
+Configuration file error, private key length is not correct.
+
+### Case 7
+
+Check current configuration of `max_map_count`:
+
+```bash
+cat /proc/sys/vm/max_map_count
+```
+
+Not persistent way to modify the `max_map_count`:
+
+```bash
+sysctl -w vm.max_map_count=3097152
+```
+
+To make the changes persistent you should modify `/etc/sysctl.conf` and then (optionally) execute `sysctl -p` to apply the changes without reboot:
+
+```bash
+echo "vm.max_map_count=3097152" >> /etc/sysctl.conf
+sysctl -p
+```
+
+### Case 8
+
+If you are using the v0.11.9 image version of DHC, the Linux kernel version of the Operating System must be greater than 6.2. Another option is to reinstall the operating system, using at least 22.04 Ubuntu version.
+
+### Case 9
+
+If the "current peers" is **0**, it means your device cannot be connected through the P2P network. You should check the internet connection and the public IP first. Then you should check the security configuration of the cloud service which you can refer to the official docs for help.
+
+### Case 10
+
+For images with versions greater than `v0.12.8`, you need to add the `run` command to the startup command line, for example `occlum run /bin/bnk-watcher run /host/keyring.toml`.
+
+### Case 11
+
+If you are using Ubuntu 24.04, you might encounter the `libssl.so.1.1: cannot open shared object file` error when running the `./sgx-detect` script. This issue arises because the system lacks the OpenSSL 1.1 library. Ubuntu 24.04 uses OpenSSL 3.0 by default, but some programs may still rely on the older OpenSSL 1.1 version. Forcing the installation of OpenSSL 1.1 might cause other issues, so it's advisable to disregard this problem.
+
+### Case 12
+
+When encountering this issue, it is likely because the image has not been pulled. To resolve this, execute the following to download the image:
+
+```bash
+docker pull safexn/sxn-node:v0.11.9
+```
+
+Subsequently, execute the following to modify the image name to correspond with the configuration file `docker-compose.yaml`:
+
+```bash
+docker tag safexn/sxn-node:v0.11.9 safexn/sxn-node:v0.11.9
+```
+
+Then, run `docker-compose up -d` again and use `docker-compose logs -f --tail 200` to check the logs and ensure the application is running normally.

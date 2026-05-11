@@ -1,0 +1,78 @@
+---
+title: Node Operators
+description: How to run a node on the SafeX Chain
+---
+
+## Node Configuration
+
+### Prerequisites
+
+Below is a list of standard requirements for running nodes on the SafeX chain:
+
+1. **Operating system:** Ubuntu 18.04 or Linux Kernel 5.16.
+2. **Hardware:**
+   * CPU: 4 Cores
+   * Memory: 16GB RAM
+   * Storage: 1TB SSD/HDD
+   * Network: At least 20Mb bandwidth with an independent IP address
+
+## Node Initialization
+
+### Download Binaries
+
+<Callout type="warn">
+Compiling from binaries is temporarily unsupported since the network is not open-source at the Testnet stage.
+</Callout>
+
+### Using Docker
+
+**Docker** is the only available way to operate nodes on SafeX chain at the alpha testnet stage. Developers can quickly run nodes through the images posted by SafeX team via the following command:
+
+```shell
+docker run -p 30333:30333 boolnetwork/bnk-node:alpha-testnet --validator --chain=alpha_testnet --name <name on telemetry>
+```
+
+If you prefer to run in the background, please add `-d` to the docker command.
+
+If you prefer to persist the node's data on the host machine, please add `-v ./data:/data` to the docker command.
+
+If you intend to run an RPC service that is externally accessible for applications or third-party applications, such as Polkadot.js, please add the following flags to run a full node:
+
+* `--unsafe-rpc-external`: Listen to all RPC interfaces.
+* `--unsafe-ws-external`: Listen to all Websocket interfaces.
+
+More details can be found by executing the following command:
+
+```shell
+docker run --rm boolnetwork/bnk-node:alpha-testnet --help
+```
+
+## Examples
+
+### Node Initialization
+
+```
+2024-01-30 08:08:26 BoolNetwork Node
+2024-01-30 08:08:26 ✌️  version 0.10.0-f53ea677650
+2024-01-30 08:08:26 ❤️  by BoolNetwork, 2022-2024
+2024-01-30 08:08:26 📋 Chain specification: BoolNetwork Alpha Testnet
+2024-01-30 08:08:26 🏷  Node name: grandiose-voyage-2878
+2024-01-30 08:08:26 👤 Role: AUTHORITY
+2024-01-30 08:08:26 💾 Database: RocksDb at /bool/.local/share/bnk-node/chains/boolnetwork_alpha_testnet/db/full
+2024-01-30 08:08:31 🔨 Initializing Genesis block/state (state: 0x5e9c…3f30, header-hash: 0x1808…0b78)
+2024-01-30 08:08:31 👴 Loading GRANDPA authority set from genesis on what appears to be first startup.
+2024-01-30 08:08:36 👶 Creating empty BABE epoch changes on what appears to be first startup.
+2024-01-30 08:08:36 🏷  Local node identity is: 12D3KooWFBrtXis73pD5aVbmyRNAGzCKaZ3q9VZFHgPmL3RNDEyH
+```
+
+### Node Sync
+
+```
+2024-01-30 08:09:06 ⚙️  Syncing 262.4 bps, target=#146111 (3 peers), best: #8016 (0x6811…5d1c), finalized #7788 (0x883a…fe33), ⬇ 82.6kiB/s ⬆ 0.9kiB/s
+```
+
+## FAQ
+
+#### Why are nodes out of sync?
+
+If the number of peers on your node is unstable and occasionally reaches 0, causing normal synchronization, try adding port mapping on your router to your public IP: 30333 → node's internal IP: 30333, and set the firewall to allow port 30333 to connect.
