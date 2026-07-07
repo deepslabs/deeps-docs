@@ -5,7 +5,12 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       // JSX supported
-      title: appName,
+      title: (
+        <>
+          <img alt="DeepS" src="/logo.png" className="w-8" />
+          DeepS
+        </>
+      ),
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
   };
