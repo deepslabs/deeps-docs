@@ -49,10 +49,10 @@ $$
 R_{\mathrm{annual}} = \frac{\text{AssetFeeRatePerYear.deconstruct()}}{10^9}
 $$
 
-The implementation assumes one block every three seconds:
+The implementation assumes one block every six seconds:
 
 $$
-B_{\mathrm{day}} = \frac{3600 \times 24}{3} = 28{,}800
+B_{\mathrm{day}} = \frac{3600 \times 24}{6} = 14{,}400
 $$
 
 It converts the annual rate to an epoch rate and then scales that rate to the asset refresh interval. Ignoring intermediate integer truncation, this is equivalent to:
@@ -104,7 +104,7 @@ The workflow returns without charging when:
 - the annual asset fee rate is zero;
 - the native-token/USDT charge rate is unavailable;
 - the committee has no remaining pledge;
-- the committee is stopped; or
+- the committee is stopped;
 - the total asset credits do not exceed the free-credit allowance.
 
 When the committee is stopped, it is also removed from `CommitteesNeedUpdateAssets`.
