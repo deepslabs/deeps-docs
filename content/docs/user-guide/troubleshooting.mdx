@@ -1,0 +1,117 @@
+---
+title: Troubleshooting
+description: Common DHC node setup issues and recommended solutions
+---
+
+## FSGSBASE Enablement Check Fails
+
+### Symptoms
+
+The container exits with code 1 after Occlum reports a failed FSGSBASE enablement check:
+
+```text
+root@MPC-Test-SGX:~/sbt-server# docker-compose up
+Recreating sbt-server_sbt-server_1 ... done
+Attaching to sbt-server_sbt-server_1
+sbt-server_1  | [ERROR] occlum-pal:     SIGILL Caught ! (line 37, file src/pal_check_fsgsbase.c)
+sbt-server_1  | [ERROR] occlum-pal: FSGSBASE enablement check failed. (line 89, file src/pal_api.c)
+sbt-server_1  | [ERROR] occlum-pal:     SIGILL Caught ! (line 37, file src/pal_check_fsgsbase.c)
+sbt-server_1  | [ERROR] occlum-pal: FSGSBASE enablement check failed. (line 89, file src/pal_api.c)
+sbt-server_sbt-server_1 exited with code 1
+```
+
+### Resolution
+
+Install the Occlum FSGSBASE enablement utility, and then restart the container:
+
+```shell
+git clone https://github.com/occlum/enable_rdfsbase.git
+cd enable_rdfsbase
+make
+sudo make install
+```
+
+If the error persists, clean and rebuild the utility before reinstalling it.
+
+---
+
+## DCAP Quote Generation Fails with Error `0xe019`
+
+### Symptoms
+
+The keyring service cannot retrieve quote configuration data and fails while determining the DCAP quote size:
+
+```text
+bnk-keyring-1  | [2024-03-07T09:54:30Z ERROR p2p_net] Start p2p work in Strict mode
+bnk-keyring-1  | [2024-03-07T09:54:30Z INFO  p2p_net] Clear marks
+bnk-keyring-1  | [get_platform_quote_cert_data ../qe_logic.cpp:388] Error returned from the p_sgx_get_quote_config API. 0xe019
+bnk-keyring-1  | thread 'main' panicked at 'IOCTL_GET_DCAP_QUOTE_SIZE failed', /root/.cargo/git/checkouts/occlum-24e6d6f82f06cb2/93e23c7/tools/toolchains/dcap_lib/src/occlum_dcap.rs:69:13
+bnk-keyring-1  | note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+### Resolution
+
+1. Confirm that `curl` is installed and available inside the container.
+2. Confirm that the SGX collateral configuration file is present and mounted at the path expected by the container. Depending on the image version, the expected filename may be `sgx_default_qcnl.conf` or the legacy `sgx_default_gcnl.conf`.
+3. Verify that the configured PCCS URL is reachable from inside the container, and then restart the keyring service.
+
+---
+
+## Occlum Fails with `sgx_mm_modify_ocall`
+
+### Symptoms
+
+The keyring service terminates with an `EFAULT` error from `sgx_mm_modify_ocall`:
+
+```text
+bnk-occlum-keyring_1  | [2024-08-09T02:48:57Z INFO  p2p_net] Current peers: 35, max: 50
+bnk-occlum-keyring_1  | [2024-08-09T02:49:27Z INFO  p2p_net] Current peers: 35, max: 50
+bnk-occlum-keyring_1  | thread '<unnamed>' panicked at 'called `Result::unwrap()` on an `Err` value: Error { inner: Embedded((EFAULT, "sgx_mm_modify_ocall failure")), location: Some(ErrorLocation { line: 421, file: "src/vm/vm_epc.rs" }), cause: None }', src/vm/vm_area.rs:659:14
+bnk-occlum-keyring_1  | stack backtrace:
+bnk-occlum-keyring_1  | note: Some details are omitted, call backtrace::enable_backtrace() with 'PrintFormat::Full' for a verbose backtrace.
+bnk-occlum-keyring_1  | fatal runtime error: failed to initiate panic, error 5
+bnk-occlum-keyring_1  | [ERROR] occlum-pal: Failed to enter the enclave to execute a LibOS thread (host tid = 467) with error code 0x1006: Unknown SGX error (line 21, file src/ocalls/spawn.c)
+bnk-occlum-keyring_1  | /opt/occlum/build/bin/occlum: line 472: 459 Illegal instruction (core dumped) RUST_BACKTRACE=1 "$instance_dir/build/bin/occlum-run" "$@"
+```
+
+### Resolution
+
+Check the current `vm.max_map_count` value:
+
+```shell
+cat /proc/sys/vm/max_map_count
+```
+
+Apply the required value temporarily. This change remains active only until the next reboot:
+
+```shell
+sudo sysctl -w vm.max_map_count=3097152
+```
+
+To persist the setting across reboots, add it to `/etc/sysctl.conf` and reload the system configuration:
+
+```shell
+echo "vm.max_map_count=3097152" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+```
+
+After applying the change, confirm the new value and restart the affected container.
+
+---
+
+## `sgx-detect` Cannot Find OpenSSL 1.1
+
+### Symptoms
+
+On Ubuntu 24.04, `sgx-detect` may fail because it was linked against `libssl.so.1.1`:
+
+```text
+home@abm111:~/mining-scripts$ ./sgx-detect
+./sgx-detect: error while loading shared libraries: libssl.so.1.1: cannot open shared object file: No such file or directory
+```
+
+### Resolution
+
+Ubuntu 24.04 provides OpenSSL 3 by default, while this version of `sgx-detect` requires OpenSSL 1.1. Do not force-install an unsupported OpenSSL 1.1 package, because doing so can introduce dependency and security issues.
+
+Use an updated `sgx-detect` binary or a supported container image that is compatible with OpenSSL 3. If `sgx-detect` is only an optional diagnostic step and the SGX-enabled services start successfully, record the warning and continue monitoring the service logs.
