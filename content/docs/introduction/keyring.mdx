@@ -1,91 +1,91 @@
 ---
 title: Keyring
-description: A basic introduction of keyring service
+description: An introduction to the DeepS keyring service
 ---
 
-DHC Keyring Device is a physical hardware that runs our keyring program in SGX environment to manage secret keys with MPC.
+A DHC keyring device is a physical machine that runs the DeepS keyring software in an Intel SGX environment and manages secret keys through multi-party computation (MPC).
 
-### Basic Concepts
+## Basic Concepts
 
-1. **Device Secret Key**: This is a special derived secret key by SGX environment. This secret key stands for this hardware's identity. We get this secret key by calling intel sgx interface `get_secret_key` and derive by `0x0002` which means _SGX\_KEYPOLICY\_MRSIGNER_.
-2. **DeviceId**: Public key of **Device Secret Key**. It will be registered to chain.
-3. **Enclave Secret Key**: We need another identity stands for this SGX environment running specific code. So we get a secret key by calling intel sgx interface `get_secret_key` and derive by `0x0001` which means _SGX\_KEYPOLICY\_MRENCLAVE_. This is unique with different hardware and code.
-4. **EnclaveId**: Public key of **Enclave Secret Key**. We register this identity to chain and there will be a map from **DeviceId** to **EnclaveId**.
-5. **EnclaveHash**: This is a unique hash stands for running code hash which is generated when we build the code environment. This hash will be reported by SGX attestation proof. We use this hash to ensure all devices are running specific code version.
-6. **MrSigner**: We have a registered identity at Intel, when we build the docker image, our identity will be included. Running this image will print **MrSigner** identity which can ensure the image's builder.
-7. **Owner**: This is an account decided by hardware maintainer. Rewards for this device will be sent to the owner account on chain.
+1. **Device Secret Key**: An SGX-derived secret key that represents the hardware identity. The key is obtained through the Intel SGX `get_secret_key` interface with the `0x0002` policy, which corresponds to _SGX\_KEYPOLICY\_MRSIGNER_.
+2. **DeviceId**: The public key associated with the **Device Secret Key**. It is registered on-chain.
+3. **Enclave Secret Key**: A second identity key that represents a specific SGX environment running specific code. The key is obtained through the Intel SGX `get_secret_key` interface with the `0x0001` policy, which corresponds to _SGX\_KEYPOLICY\_MRENCLAVE_. It is unique to the combination of hardware and enclave code.
+4. **EnclaveId**: The public key associated with the **Enclave Secret Key**. It is registered on-chain and mapped to the corresponding **DeviceId**.
+5. **EnclaveHash**: A unique hash of the enclave code, generated when the enclave is built and included in the SGX attestation evidence. DeepS uses this hash to verify that every device is running an approved code version.
+6. **MrSigner**: The measurement of the identity used to sign the enclave. The signing identity is embedded when the Docker image is built, allowing operators to verify the enclave publisher.
+7. **Owner**: An on-chain account designated by the hardware operator. Rewards earned by the device are sent to this account.
 
-### Device State
+## Device States
 
-1. **Working**: Device owner should have enough pledge for this device on chain. Then device owner should send `join_service` to chain. Device will do all works (e.g. MPC, RingVRF, heartbeat, consensus). **Owner** will get extra reward for this device's work. Owner **SHOULD NOT** close the device hardware or program at this state.
-2. **Exiting**: Device owner can send `exit_service` to chain. Device will not join new committees until this device exits all committees, and will send `report_standby` transaction automatically. Owner **SHOULD NOT** close the device hardware or program at this state.
-3. **Standby**: This is default state when device first registered. Device can change to **Standby** when device finishes all works and reports standby successfully. At this state, device will only send heartbeat but not be checked. Owner **CAN** close the device hardware or program at this state.
+1. **Working**: The owner must provide sufficient on-chain collateral for the device and submit a `join_service` transaction. The device then performs MPC, RingVRF, heartbeat, and consensus tasks, for which the **Owner** receives additional rewards. The owner **SHOULD NOT** shut down the hardware or keyring service while the device is in this state.
+2. **Exiting**: The owner can submit an `exit_service` transaction. The device stops joining new committees, waits until it has left all existing committees, and then automatically submits a `report_standby` transaction. The owner **SHOULD NOT** shut down the hardware or keyring service while the device is in this state.
+3. **Standby**: This is the default state after a device is registered. A device returns to **Standby** after completing all assigned work and successfully reporting its standby status. In this state, it sends heartbeats but does not participate in service checks. The owner **CAN** shut down the hardware or keyring service.
 
-### Dependency Server (Monitor)
+## Dependency Service: Monitor
 
-Monitor is a dependent service also running in SGX environment which is responsible to keep monitoring all chains that our server should handle. Monitor should synchronize chain blocks and check block correctness.
+The monitor is a dependent service that also runs in an SGX environment. It continuously monitors each supported chain, synchronizes blocks, and verifies block correctness.
 
-Device will check the source transaction's existence from monitor server when it encounters a **Sign** mission for cross chain work.
+When a device receives a **Sign** task for a cross-chain transaction, it asks the monitor to verify that the source transaction exists.
 
-Device should set config of monitor type:
+Each device must use one of the following monitor modes:
 
-1. **Local**: Each device should run a local monitor for device, and device will register this to chain for more rewards.
-2. **Public**: Device can check information from our official monitor but with less rewards. This is default for device.
+1. **Local**: The operator runs a dedicated monitor for the device and registers it on-chain. This mode provides higher rewards.
+2. **Public**: The device obtains information from an official public monitor. This is the default mode and provides lower rewards.
 
-Then device will:
+The device then:
 
-1. Bind monitor info to chain at register process.
-2. Check monitor chains' synchronize state periodically. **Local** mode will compare with **Public** monitor. If block height is not enough, device will not join work and it may be punished for influencing **Sign** work.
-3. Check source chain transactions from monitor before **Sign** cross chain transactions.
+1. Binds its monitor information on-chain during registration.
+2. Periodically checks the synchronization status of monitored chains. In **Local** mode, the device compares its local monitor with the **Public** monitor. If the local block height falls behind, the device does not accept work and may be penalized for disrupting **Sign** tasks.
+3. Verifies source-chain transactions through the monitor before signing cross-chain transactions.
 
 ### Committee
 
-Device's final target is to serve our **Committee**. Let's talk about committee before device's concrete work.
+A device ultimately serves one or more **Committees**. The following concepts describe how committees operate.
 
-**Committee** is a group of members running MPC to maintain a secret key which is used to manage assets and it can sign for any message. To keep the secret key's safety, there will be multiple forks of MPC members. A device may join multiple forks for one committee using its temporary identity (mostly only one fork).
+A **Committee** is a group of members that use MPC to maintain a secret key for asset management and message signing. For resilience, a committee can contain multiple forks of MPC participants. A device uses a temporary identity to join one or more forks, although it typically joins only one.
 
 The committee's lifetime is defined as **GlobalEpoch**:
 
-1. **EpochBlocks**: Total blocks of this **GlobalEpoch**.
-2. **ApplyBlocks**: Blocks to apply committee's epoch change (**KeyHandover**).
-3. **RvrfBlocks**: Blocks for devices sending RingVRF proofs to generate temporary identity for this epoch.
-4. **ReserveBlocks**: As the name, it is currently reserved.
-5. **ChangeBlocks**: Blocks for committees' **KeyHandover** work. Device will report result if success.
+1. **EpochBlocks**: The total number of blocks in the **GlobalEpoch**.
+2. **ApplyBlocks**: The blocks during which a committee epoch change (**KeyHandover**) is applied.
+3. **RvrfBlocks**: The blocks during which devices submit RingVRF proofs to generate temporary identities for the epoch.
+4. **ReserveBlocks**: Blocks reserved for future use.
+5. **ChangeBlocks**: The blocks during which committees perform **KeyHandover**. Devices report successful results on-chain.
 
-Within **GlobalEpoch** changes, committee's members will handover secret keys by epoch.
+At each **GlobalEpoch** transition, committee members hand over their secret-key shares to the next set of members.
 
-### Device Works
+## Device Tasks
 
-When device's state changes to **Working**, it will mainly do the following works by chain events:
+When a device enters the **Working** state, on-chain events can assign it the following tasks:
 
-1. **RingVRF**: Device should run and generate RingVRF proof to generate a temporary identity to join current **GlobalEpoch**. The identity may be chosen to join some committees' work.
-2. **KeyGenerate**: MPC work that chosen device with temporary identity should do. It will finally generate committee's secret keys and public key. The result will be signed and reported by one of the identities.
-3. **KeyHandover**: For every **GlobalEpoch**, committee will try to share secret keys from old epoch identities to new epoch identities by MPC. If this succeeds, the chain will generate event `pallet_committee::event::ApplyEpochChange` during **ApplyBlocks**, and old identities will delete secret keys, new identities will take all MPC works of this committee. For creating period, fork 0 runs **KeyGenerate** and then runs **KeyHandover** to share secret keys to other forks.
-4. **Sign**: This MPC work is triggered by many chain events (e.g. `pallet_channel::event::NewTransaction`) and current epoch identities should handle this work.
+1. **RingVRF**: The device generates a RingVRF proof and a temporary identity for the current **GlobalEpoch**. This identity may be selected to perform work for one or more committees.
+2. **KeyGenerate**: Selected devices use their temporary identities to perform MPC and generate a committee's secret-key shares and public key. One of the identities signs and reports the result.
+3. **KeyHandover**: During each **GlobalEpoch**, a committee uses MPC to transfer secret-key shares from the previous epoch's identities to the new identities. After a successful handover, the chain emits `pallet_committee::event::ApplyEpochChange` during **ApplyBlocks**. The previous identities delete their shares, and the new identities assume the committee's MPC responsibilities. During committee creation, fork 0 performs **KeyGenerate** and then uses **KeyHandover** to distribute shares to the other forks.
+4. **Sign**: Various on-chain events, such as `pallet_channel::event::NewTransaction`, trigger this MPC task. The identities selected for the current epoch process the request.
 
-### Extend Read
+## Further Reading
 
 #### A. Device Consensus
 
 There are two important states on chain:
 
-1. **snapshots**: Collection of **EnclaveIds** of **Working** device. It is updated at start of each **GlobalEpoch**.
-2. **candidates**: Collection of temporary identities generated by devices' **RingVRF**. It is updated at the end of **RvrfBlocks** of **GlobalEpoch**.
+1. **snapshots**: The collection of **EnclaveIds** for **Working** devices. It is updated at the start of each **GlobalEpoch**.
+2. **candidates**: The collection of temporary identities generated through device **RingVRF** proofs. It is updated at the end of the **RvrfBlocks** period in each **GlobalEpoch**.
 
-Devices should have a consensus of important chain state about **snapshots** and **candidates** for committees' **KeyGenerate** and **KeyHandover** works. This consensus **SHOULD** be confirmed for every **GlobalEpoch**.
+Devices must agree on the **snapshots** and **candidates** state used for committee **KeyGenerate** and **KeyHandover** tasks. This consensus **SHOULD** be confirmed during every **GlobalEpoch**.
 
-Why we need this consensus? At normal situation, committee's secret keys are distributed in different devices and the device's data are encrypted by SGX. But if a malicious owner who has multiple devices wants to get the full secret key of a committee, they may run the **Database Backup Attack**.
+This consensus protects against rollback-based attacks. Under normal operation, a committee's secret-key shares are distributed across devices, and SGX protects each device's data. A malicious operator controlling multiple devices could nevertheless attempt a **Database Backup Attack** to recover a committee's complete secret key.
 
-**Database Backup Attack**: Device's work is proceeded by chain events and the node for device is configured by owner. So a malicious device owner can:
+Device tasks are driven by on-chain events, but the owner configures the node that supplies those events. A malicious owner could therefore:
 
-1. Backup database for every **GlobalEpoch**.
-2. After committee's next epoch change applied, devices will expose their identities to get rewards.
-3. Malicious owner may find that their devices have enough keys to recover a full secret key for a specific committee (we choose committee members by random).
-4. Malicious owner can send fake events and fake storage (e.g. **snapshot** and **candidates**) to their devices backup database and devices may run **KeyHandover** to share keys to some fake devices (created by the owner).
+1. Back up each device database during every **GlobalEpoch**.
+2. Wait until the next committee epoch change, when devices reveal their identities to claim rewards.
+3. Determine whether the operator's randomly selected devices collectively hold enough shares to recover a particular committee key.
+4. Restore the backed-up databases and supply fabricated events and state, such as **snapshots** and **candidates**, causing the devices to run **KeyHandover** and transfer shares to identities controlled by the operator.
 
 **Consensus Process**
 
-**CourtMember**: The **snapshot** will be collected and will be member of court. This is decided by previous epoch consensus.
+**CourtMember**: Devices in the confirmed **snapshot** form the court. Court membership is determined by consensus during the previous epoch.
 
-1. At the start of **GlobalEpoch**, the **snapshot** will be updated. **CourtMembers** of previous epoch will vote for the state of **snapshot**. If the votes is greater than half of previous **CourtMembers**, the **snapshot** is confirmed for new **GlobalEpoch** and **snapshot** will be current **CourtMembers**. If the votes are not enough, the **CourtMembers** of previous epoch will be the new **snapshot** and current **CourtMembers** will not change.
-2. At the end of **RvrfBlocks**, current **CourtMembers** will vote for the state of **candidates**. If the votes is greater than half of current **CourtMembers**, the state is confirmed and all **KeyHandover** will choose members from **candidates**. If the votes are not enough, **candidates** will be cleared and device will not do **KeyGenerate** and **KeyHandover** works.
+1. At the start of a **GlobalEpoch**, the **snapshot** is updated. The previous epoch's **CourtMembers** vote on the new snapshot. If more than half approve it, the snapshot is confirmed for the new epoch and its members become the current **CourtMembers**. Otherwise, the previous epoch's **CourtMembers** become the new **snapshot**, and court membership remains unchanged.
+2. At the end of **RvrfBlocks**, the current **CourtMembers** vote on the **candidates** state. If more than half approve it, the state is confirmed and subsequent **KeyHandover** tasks select members from **candidates**. Otherwise, **candidates** is cleared and devices do not perform **KeyGenerate** or **KeyHandover** tasks during that epoch.

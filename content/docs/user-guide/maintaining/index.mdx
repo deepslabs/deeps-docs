@@ -3,32 +3,34 @@ title: Maintaining
 description: How to set up and maintain a DHC node service
 ---
 
->> The document is operated under ubuntu24.04
+<Callout>
+This guide has been tested on Ubuntu 24.04.
+</Callout>
 
-### Create Wallet Account
+## Create a Wallet Account
 
-You can create a new wallet address directly within the browser plugin wallet like MetaMask and export the private key for later use.
+Create a dedicated account in an EVM-compatible wallet such as MetaMask. Store its recovery phrase and private key securely; never include either value in support requests or public logs.
 
-### Remote SSH Server Login
+## Connect to the Server over SSH
 
-To log into the SSH server via the account password set when purchasing the server and the public IPv4 address automatically assigned to the instance by the cloud service provider.
+Use the account credentials configured when the server was provisioned and the public IPv4 address assigned by the cloud provider.
 
 **Option 1.** The built-in system terminal:
 
-* For Mac systems and native Linux systems, you can use the built-in terminal simulator to log in.
-* For Windows systems, you can use the built-in PowerShell tool to log in. You need to run PowerShell as administrator and install the OpenSSH plugin. See [Get started with OpenSSH for Windows](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=powershell).
+* On macOS and Linux, use the built-in terminal.
+* On Windows, use PowerShell with the OpenSSH client. See [Get started with OpenSSH for Windows](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=powershell).
 
-Login method: After opening the terminal, enter `ssh username@public_ip_address` (e.g. `ssh test@1.1.1.1`), then enter the password according to the prompt to complete the login.
+Run `ssh username@public_ip_address`, for example `ssh test@1.1.1.1`, and enter the password when prompted.
 
 **Option 2.** Third-party SSH login tools:
 
-Third-party SSH login tools such as Xshell, PuTTY, SimpleRemote, Terminus, etc. You can refer to the relevant product tutorials to log in by yourself.
+You can also use an SSH client such as Xshell, PuTTY, SimpleRemote, or Termius. Follow the security and connection guidance provided by the selected client.
 
 **Option 3.** The built-in server method of cloud service:
 
-Different cloud service providers may provide their online server management consoles, through which you can log in graphically, such as logging in to EC2 instances on Amazon Web Services through the EC2 console page. Please refer to the help documents provided by each cloud service provider.
+Most cloud providers offer a browser-based server console. Consult the provider's documentation for connection instructions.
 
-### Install Runtime Environment
+## Install the Runtime Environment
 
 ```bash
 # Install the Docker runtime environment
@@ -38,7 +40,7 @@ sudo systemctl start docker
 
 # Check if the Docker service started correctly
 sudo systemctl status docker
-# Use "ctrl+c" to resume command status
+# Press Ctrl+C to exit the status view
 sudo chmod 666 /var/run/docker.sock
 docker version
 
@@ -50,10 +52,10 @@ sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
 
-### Create a Node Storage Directory and Startup File
+## Create the Node Storage Directory and Compose File
 
 <Callout>
-Exposing the node's external IP is important to increase DHC's stability.
+Advertising the node's public address improves peer connectivity and DHC stability.
 
 ```
 --public-addr <PUBLIC_ADDR>...
@@ -64,10 +66,10 @@ Exposing the node's external IP is important to increase DHC's stability.
 </Callout>
 
 ```bash
-# Create a node storage catalog
+# Create a node storage directory
 mkdir -p deeps-testnode/node-data
 
-# Enter the node storage catalog
+# Enter the node directory
 cd deeps-testnode
 
 # Adjust user permissions
@@ -106,55 +108,55 @@ EOF
 docker-compose up -d
 ```
 
-Synchronizing blocks will take more time, and we provide snapshots to speed up chain startup. See [Run a chain via snapshot](/docs/user-guide/DHC-maintaining/run-a-chain-via-snapshot).
+Initial block synchronization can take some time.
 
-To confirm whether the node has synchronized to the latest height, you can use the log command `docker-compose logs -f --tail 200 | grep finalized` to check if the `finalized` height has reached the `target` height. If it has, the synchronization is successful.
+Run `docker-compose logs -f --tail 200 | grep finalized` and compare the `finalized` and `target` heights. The node is synchronized when the finalized height reaches the target height.
 
 <Callout>
-Some of the built-in terminals will recognize space characters as indent characters during code copying, which may lead to YAML program runtime errors. Please check and replace it.
+YAML is indentation-sensitive. If Docker Compose reports a parsing error, verify that the copied file uses consistent spaces and preserves the indentation shown above.
 </Callout>
 
-### Configure the SGX Server
+## Configure the SGX Server
 
 ```bash
-# Back to root catalog
+# Return to the parent directory
 cd ..
 
-# Pull github repositories
+# Clone the deployment repository
 git clone https://github.com/deepslabs/deeps-mining-scripts.git
 
-# Install the sgx driver
+# Install SGX dependencies
 sudo apt update
 sudo apt install build-essential automake autoconf libtool wget libssl-dev dkms
 wget https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu18.04-server/sgx_linux_x64_driver_1.41.bin
 bash sgx_linux_x64_sdk_2.30.101.1.bin
 
-# View sgx status
+# Check SGX status
 cd deeps-mining-scripts && ./sgx-detect
 ```
 
-### Modify keyring.toml Configuration File
+## Configure `keyring.toml`
 
-Please check out the latest DHC bootnodes in advance and do the replacement if changed.
+Confirm the current DHC bootnode addresses and update the configuration if they have changed.
 
 <Callout>
-**`external_multiaddrs:`** Exposing the server's external IP is important, thereby increasing the reward.
+Set **`external_multiaddrs`** to advertise the server's public address and improve inbound connectivity.
 
 ```
 example: external_multiaddrs = ["/ip4/127.0.0.1/tcp/38700"]
 ```
 </Callout>
 
-### Create keyring config
+### Generate the Keyring Configuration
 
 ```shell
 hdc config testnet <owner address>
 ```
 
-### Modify sgx\_default\_qcnl.conf File
+## Configure `sgx_default_qcnl.conf`
 
 <Callout type="warn">
-Try the local solution [here](/docs/user-guide/DHC-maintaining/local-lan-configuration-for-sgx) if you can't find the solutions for the cloud services below.
+For an on-premises deployment, follow the [local LAN PCCS guide](/docs/user-guide/maintaining/local-lan-configuration-for-sgx).
 </Callout>
 
 ```json
@@ -181,7 +183,7 @@ Try the local solution [here](/docs/user-guide/DHC-maintaining/local-lan-configu
   "verify_collateral_cache_expire_hours": 168
 }
 
-// Microsoft Cloud
+// Microsoft Azure
 {
   "pccs_url": "https://global.acccache.azure.net/sgx/certification/v3/",
   "use_secure_cert": true,
@@ -191,15 +193,15 @@ Try the local solution [here](/docs/user-guide/DHC-maintaining/local-lan-configu
 }
 ```
 
-### Modify docker-compose File (Optional)
+## Update the Compose Image Version (Optional)
 
-You need to change the configuration here and replace the `<version_no>` only when the official image version is updated. Please refer to the [official release link](https://github.com/deepslabs/deeps-mining-scripts/blob/master/docker-compose.yml) for the exact version information.
+Replace `<version_no>` only when an updated image is published. Check the [official Compose file](https://github.com/deepslabs/deeps-mining-scripts/blob/master/docker-compose.yml) for the supported version.
 
 <Callout>
 **Before changing version numbers, make sure your device is in Standby status, or not registered. Otherwise, you will be punished.**
 </Callout>
 
-The latest version of the image is: [**pre1.2.0**](https://github.com/deeps/deeps-mining-scripts/blob/master/docker-compose.yml#L5)
+Check the [official Compose file](https://github.com/deepslabs/deeps-mining-scripts/blob/master/docker-compose.yml) for the current image version.
 
 ```yaml
 # vim docker-compose.yaml
@@ -212,28 +214,28 @@ services:
 ...............
 ```
 
-### Start DHC Service
+## Start the DHC Service
 
 ```bash
 # Start DHC service
 docker-compose up -d
 
-# View node service Logs
+# View node service logs
 docker-compose logs --tail 200 -f
 
-# Check P2P connection Logs
+# Check P2P connection logs
 docker-compose logs --tail 200 -f | grep 'Current peers'
 ```
 
-### Update Device Version
+## Update the Device Version
 
-Please maintain your image of the DHC server by updating it with the latest official version.
+Keep the DHC server on the latest supported image version.
 
 #### 1. Exit the Service
 
-Device upgrades must be performed on **Standby** status.
+Device upgrades must be performed while the device is in **Standby**.
 
-If the device is on "Serving" status, it must be exited before starting the upgrade. If the device is on "Exiting" status, wait up to one day until the process is complete before proceeding.
+If the device is **Serving**, exit the service before starting the upgrade. If it is **Exiting**, wait up to one day for the exit to complete.
 
 #### 2. Update the Script File
 
@@ -249,11 +251,11 @@ sed -ri 's/1.0.x/1.0.1/g' docker-compose.yaml
 docker-compose up -d
 ```
 
-Then check out the version of your device on the [DHC Explorer](https://test-dhcs.deeps.fi/).
+Verify the device version in the [DHC Explorer](https://test-dhcs.deeps.fi/).
 
 #### 3. Rejoin the Service
 
-You can join the service again after all the steps above are done and wait until the device changes to "Serving" status.
+After completing the upgrade, rejoin the service and wait for the device to enter **Serving**.
 
 #### 4. Remove Backup Data (Optional)
 
@@ -263,4 +265,4 @@ rm -rf data-bak/
 
 ### Case Study
 
-If you're facing problems in the setup process, try to find a solution in the [Case Study](/docs/user-guide/case-study).
+For common setup problems, see [Troubleshooting](/docs/user-guide/case-study).

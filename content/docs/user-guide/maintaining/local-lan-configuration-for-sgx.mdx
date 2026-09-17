@@ -3,13 +3,13 @@ title: Local LAN Configuration for SGX
 description: How to configure a local LAN PCCS service for SGX
 ---
 
-To realize local LAN Configuration for SGX, you need to start a local LAN PCCS service locally or on the LAN, and then change the `pccs_url` in the `sgx_default_qcnl.conf` file on all local DHCs to the local LAN PCCS link (for example, if the PCCS service is deployed on `host1`, then it should be `"pccs_url": "https://host1:8081/sgx/certification/v4/"`).
+To use SGX within a local network, deploy a Provisioning Certificate Caching Service (PCCS) and configure every local DHC node to use it. Set `pccs_url` in each node's `sgx_default_qcnl.conf` file. For example, if PCCS runs on `host1`, use `"pccs_url": "https://host1:8081/sgx/certification/v4/"`.
 
-You may refer to the steps below for more details:
+Follow the steps below to configure the service.
 
 ### Applying for an Intel API Key
 
-You'll need to acquire an Intel API key to utilize Intel's Software Development Kit (SDK) for Intel SGX (Software Guard Extensions). This key grants you access to Intel's resources and enables you to develop and deploy SGX-based applications.
+Obtain an Intel API key for the SGX provisioning services used by PCCS.
 
 **Steps:**
 
@@ -21,7 +21,7 @@ You'll need to acquire an Intel API key to utilize Intel's Software Development 
 
 [Intel API Portal](https://api.portal.trustedservices.intel.com/products)
 
-### Installing a Local LAN PCCS Service
+## Install a Local PCCS Instance
 
 ```bash
 # Ubuntu 18.04:
@@ -46,15 +46,15 @@ sudo apt install -y sgx-dcap-pccs libsgx-dcap-default-qpl
 systemctl status pccs
 ```
 
-During the installation process, enter the API key you applied for earlier, and set a password for PCCS. Here, we will use "pccs12345678" as an example.
+During installation, enter the Intel API key and create a strong, unique PCCS password.
 
-Once you have completed the above steps, you can skip the remaining steps by simply pressing the Enter key.
+Accept the default values for any remaining settings unless your network requires different values.
 
-If you encounter a situation during installation where it prompts that the password is too weak, don't worry. Just keep pressing the Enter key. After exiting, reinstall pccs, and this issue should not occur again.
+If the installer rejects the password as too weak, restart the installation and provide a stronger password.
 
-The above steps indicate that the PCCS service installation is complete. However, upon restarting the service, the following error message is encountered:
+If PCCS does not start successfully after installation, register the platform by following these steps.
 
-#### Solution:
+### Register the Platform
 
 **Step 1.** Install the register tool for SGX:
 
@@ -86,8 +86,8 @@ If the error message persists, you may need to reseat the motherboard battery, r
 
 **Step 5.** Run the PCK ID Retrieval Tool.
 
-Keep running the tool until the registration has been done.
+Repeat the command only if it reports that registration has not completed.
 
 **Step 6.** Start the DHC processes.
 
-Once SGX registration is successful, you can start the DHC processes. However, due to data caching, you may encounter an error message upon the first attempt. Try more attempts until the registration has been done.
+After SGX registration succeeds, start the DHC processes. If the first attempt fails because cached collateral is not yet available, review the PCCS and DHC logs before retrying.

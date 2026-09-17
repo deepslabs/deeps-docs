@@ -3,9 +3,9 @@ title: System Configuration
 description: DeepS chain parameters for developers and users
 ---
 
-The chapter introduces the DeepS's chain parameters to facilitate developers or users to better understand the system.
+This page summarizes the DeepS chain parameters for developers, node operators, and users.
 
-### Basic Chain Variable Parameters
+## Basic Chain Parameters
 
 | Variable | Beta Mainnet Value | Beta Testnet Value |
 | -------- | ------------------ | ------------------ |
@@ -22,11 +22,11 @@ The chapter introduces the DeepS's chain parameters to facilitate developers or 
 | Gas fee ratio | 50%-miner / 20%-burn / 30%-treasure | 50%-miner / 20%-burn / 30%-treasure |
 | Existential Deposit | 0 | 0 |
 
-### Validator Variable Parameters
+## Validator Parameters
 
 | Variable | Beta Mainnet Value | Beta Testnet Value |
 | -------- | ------------------ | ------------------ |
-| Epoch Duration | 100 block | 100 block |
+| Epoch Duration | 100 blocks | 100 blocks |
 | Sessions Per Era | 24 | 24 |
 | Epoch | 10 min | 10 min |
 | Era | 4 h | 4 h |
@@ -37,28 +37,28 @@ The chapter introduces the DeepS's chain parameters to facilitate developers or 
 | Minimum Validator Bond | 100000 DPS | 100000 tDPS |
 | Minimum Nominator Bond | 200 DPS | 200 tDPS |
 
-### DHC Variable Parameters
+## DHC Parameters
 
 | Variable | Beta Mainnet Value | Beta Testnet Value |
 | -------- | ------------------ | ------------------ |
-| Incentive Epoch Duration | 300 block (30 min) | 300 block (30 min) |
-| Committee Epoch Blocks | 600 block (60 min) | 400 block (40 min) |
-| Committee Apply Blocks | 200 block | 150 block |
-| Committee Rvrf Blocks | 100 block | 50 block |
-| Committee Change Blocks | 200 block | 150 block |
+| Incentive Epoch Duration | 300 blocks (30 min) | 300 blocks (30 min) |
+| Committee Epoch Blocks | 600 blocks (60 min) | 400 blocks (40 min) |
+| Committee Apply Blocks | 200 blocks | 150 blocks |
+| Committee RingVRF Blocks | 100 blocks | 50 blocks |
+| Committee Change Blocks | 200 blocks | 150 blocks |
 | Committee Slot Number | 10 | 10 |
 | Committee Maximum Duplicate | 3 | 3 |
 | Committee Maximum Members | 15 | 15 |
 | Committee Minimum Members | 5 | 5 |
-| Committee T,N ratio | gt 1 / 2 | ge 2/3 |
+| Committee T/N Ratio | > 1/2 | >= 2/3 |
 | Committee Service Fee | 0.1 DPS | 1 tDPS |
 | Device Heartbeat Session | 10 min | 10 min |
 | Device Reward Session | 8 h | 8 h |
 | Device Minimum Mint Pledge | 100000 DPS | 100000 tDPS |
-| Device Offline Punish | 0.5 DPS | 10 tDPS |
-| Device Maximum Voter | 200 | 3000 |
-| Device Force Exit Punish | 1000 DPS | 1000 tDPS |
-| Device No heartbeats Allowed | 20 min | 20 min |
+| Device Offline Penalty | 0.5 DPS | 10 tDPS |
+| Maximum Device Voters | 200 | 3000 |
+| Device Forced-Exit Penalty | 1000 DPS | 1000 tDPS |
+| Maximum Heartbeat Gap | 20 min | 20 min |
 | Device Force Exit Waiting | 100 min | 100 min |
 | Device Maximum Exit Waiting | 1 day | 1 day |
 | Device Maximum No Heartbeat | 20 min | 20 min |
@@ -72,7 +72,7 @@ The chapter introduces the DeepS's chain parameters to facilitate developers or 
 | Device Advanced Score | 0 | 0 |
 | Foundation Reward Rate | 75% | 75% |
 
-### Govern Variable Parameters
+## Governance Parameters
 
 | Variable | Beta Mainnet Value | Beta Testnet Value |
 | -------- | ------------------ | ------------------ |

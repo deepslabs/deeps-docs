@@ -3,27 +3,26 @@ title: Quick Start
 description: An overview of running a node equipped with TEE to provide DHC services
 ---
 
-An overview of running a node equipped with TEE to provide DHC services.
+This guide explains how to run a TEE-enabled node that provides DHC services.
 
-### Download Binaries
+## Download the Deployment Scripts
 
 ```shell
 git clone https://github.com/deepslabs/deeps-mining-scripts.git
-cd mining-scripts
+cd deeps-mining-scripts
 ```
 
 <Callout type="warn">
-Please ensure that your CPU supports SGX before carrying on. We found this [guide](https://www.intel.com/content/www/us/en/support/articles/000028173/processors.html) might be helpful to you.
+Before continuing, confirm that the CPU supports Intel SGX. See Intel's [SGX support guide](https://www.intel.com/content/www/us/en/support/articles/000028173/processors.html) for details.
 </Callout>
 
-### Configuration
+## Configuration
 
-You should `cd configs` to configure several parameters before running further scripts. More specifically, except for the following parameter that should be paid special attention, the rest can be left as default values:
+Change to the `configs` directory and review the configuration before starting the services. Most values can retain their defaults, but you must configure the following field:
 
-* `keyring.toml`
-  * `identity`: The account that interacts with the Bool chain. It is the owner of the device and can perform multiple actions: signing transactions, registering devices, activating devices, receiving network rewards, etc.
+* `keyring.toml` → `identity`: The DeepS account that owns the device and submits transactions for device registration, activation, and reward collection.
 
-### Create An Identity Account
+## Create an Identity Account
 
 Run the script:
 
@@ -31,7 +30,7 @@ Run the script:
 docker run -it --rm deeps/deeps-node:release identity generate
 ```
 
-Outputs (sample):
+Example output:
 
 ```shell
 Secret seed:      0x71235e1458ce9d140c8b8ded28ccc1e32e62c340aef51a65e1350a387dbe08a6
@@ -39,13 +38,11 @@ Public key (hex): 0x0248e7f02dcc9f7061a090b67dede93d7381847e94955aee7996603d2225
 Account ID:       0x34a5572cb21d34354e3091564d5edc7b791e9d5f
 ```
 
-Request tBOL by sending USDT (supports BSC, Polygon, Optimism) to:
+Fund the generated account with enough testnet `tDPS` to register and activate the device and to pay transaction fees. Obtain testnet tokens only through an official DeepS testnet channel.
 
-**0x2000B83c88DC238B66A9E72e1B62C446d39ceef7**
+## General Commands
 
-### General Commands
-
-Start the mining service via `docker-compose`.
+Manage the mining services with Docker Compose.
 
 #### Start Mining
 
@@ -65,8 +62,9 @@ docker-compose logs
 docker-compose down
 ```
 
-#### Updating
+### Update Images
 
 ```shell
 docker-compose pull
+docker-compose up -d
 ```

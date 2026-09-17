@@ -3,11 +3,11 @@ title: RingVRF
 description: The Ring VRF algorithm used in DeepS for anonymous committee selection
 ---
 
-## Overall
+## Overview
 
 In this project, committee members need to be rotated to achieve time-limited security for private key shards. Therefore, a method is required to select different batches of committee members.
 
-Simultaneously, the identities of committee members must be kept confidential to prevent them from colluding with each other and launching attacks against signatures.
+At the same time, committee-member identities must remain confidential to reduce the risk of collusion and targeted attacks against the signing protocol.
 
 Thus, a method is needed to identify committee members holding specific private keys without revealing their identities.
 
@@ -17,19 +17,19 @@ Thus, a method is needed to identify committee members holding specific private 
 2. **Identity Confidentiality** — Prevents committee member identification to avoid collusion attacks on signatures.
 3. **Anonymous Key Ownership Proof** — Allows a member to prove their public key belongs to a specified set without revealing which one.
 
-> **In essence**: Ring VRF lets a user prove their public key is in set \{pk₀,...,pkₙ₋₁\} and generate verifiable random output `v` using private key `sk`, while **hiding their specific public key index** `ℓ`.
+> **In essence**: Ring VRF allows a user to prove that their public key belongs to the set \{pk₀,...,pkₙ₋₁\} and to generate a verifiable random output `v` with private key `sk`, while **hiding the index of their public key** `ℓ`.
 
-So we introduced the **Ring VRF algorithm**.
+DeepS uses the **Ring VRF algorithm** to satisfy these requirements.
 
-**The purpose of the Ring VRF algorithm is:** To allow a user to prove that the public key corresponding to their private key exists within a set of public keys, **without revealing which specific public key they possess.**
+The algorithm allows a user to prove that the public key corresponding to their private key belongs to a public-key set **without revealing which key is theirs**.
 
 $$
 RVRF = \{((pk_0, \ldots, pk_{N-1}, r, v), sk, \ell) \mid \ell \in \{0, \ldots, N-1\} \text{ s.t. } (pk_\ell, sk) \in R_{pk} \wedge v \leftarrow PRF_{sk}(r)\}
 $$
 
-The inputs to the algorithm are a **public set of public keys** and a **random number**.
+The algorithm takes a **public set of public keys** and a **random seed** as inputs.
 
-Pedersen commitment is used as the commitment scheme.
+A Pedersen commitment is used as the commitment scheme.
 
 The algorithm achieves its core functionality **by utilizing** the one-out-of-many protocol. Additionally, a **sub-proof** guarantees that both the commitment value `c` (from the Pedersen commitment) and the PRF result `v` correspond to the same private key (`sk`).
 

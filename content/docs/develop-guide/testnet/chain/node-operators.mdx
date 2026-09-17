@@ -9,37 +9,41 @@ description: How to run a node on the DeepS Chain
 
 Below is a list of standard requirements for running nodes on the DeepS chain:
 
-1. **Operating system:** Ubuntu 18.04 or Linux Kernel 5.16.
+1. **Operating system:** Ubuntu 18.04 or later with Linux kernel 5.16 or later.
 2. **Hardware:**
-   * CPU: 4 Cores
-   * Memory: 16GB RAM
-   * Storage: 1TB SSD/HDD
-   * Network: At least 20Mb bandwidth with an independent IP address
+   * CPU: 4 cores
+   * Memory: 16 GB RAM
+   * Storage: 1 TB SSD or HDD
+   * Network: At least 20 Mbps of bandwidth and a dedicated public IP address
 
 ## Node Initialization
 
 ### Download Binaries
 
 <Callout type="warn">
-Compiling from binaries is temporarily unsupported since the network is not open-source at the Testnet stage.
+Building the node from source is not currently supported because the testnet node implementation is not yet open source.
 </Callout>
 
 ### Using Docker
 
-**Docker** is the only available way to operate nodes on DeepS chain at the beta testnet stage. Developers can quickly run nodes through the images posted by DeepS team via the following command:
+**Docker** is currently the supported method for running a DeepS beta-testnet node. Start a node with the image published by the DeepS team:
 
 ```shell
-docker run -p 30333:30333 deepslabs/deeps-node:pre-beta --chain=testbeta --name <name on telemetry>
+docker run -p 30333:30333 deepslabs/deeps-node:pre-beta --chain=testbeta --name "<telemetry-name>"
 ```
 
-If you prefer to run in the background, please add `-d` to the docker command.
+Add `-d` to run the container in the background.
 
-If you prefer to persist the node's data on the host machine, please add `-v ./data:/data` to the docker command.
+Add `-v ./data:/data` to persist node data on the host.
 
-If you intend to run an RPC service that is externally accessible for applications or third-party applications, such as Polkadot.js, please add the following flags to run a full node:
+To expose RPC services to external applications such as Polkadot.js, add the following flags:
 
 * `--unsafe-rpc-external`: Listen to all RPC interfaces.
-* `--unsafe-ws-external`: Listen to all Websocket interfaces.
+* `--unsafe-ws-external`: Listen on all WebSocket interfaces.
+
+<Callout type="warn">
+These flags expose unsafe RPC methods. Restrict access with a firewall or reverse proxy, and never expose the endpoints directly to the public internet.
+</Callout>
 
 More details can be found by executing the following command:
 
@@ -78,4 +82,4 @@ docker run --rm deepslabs/deeps-node:pre-beta --help
 
 #### Why are nodes out of sync?
 
-If the number of peers on your node is unstable and occasionally reaches 0, causing normal synchronization, try adding port mapping on your router to your public IP: 30333 → node's internal IP: 30333, and set the firewall to allow port 30333 to connect.
+If the peer count is unstable or repeatedly drops to zero, forward TCP port `30333` from the router's public IP address to port `30333` on the node's internal IP address. Ensure that the firewall permits inbound connections on this port.
