@@ -29,7 +29,7 @@ Compiling from binaries is temporarily unsupported since the network is not open
 **Docker** is the only available way to operate nodes on DeepS chain at the beta testnet stage. Developers can quickly run nodes through the images posted by DeepS team via the following command:
 
 ```shell
-docker run -p 30333:30333 safexn/deeps-node:pre-beta --validator --chain=betatest --name <name on telemetry>
+docker run -p 30333:30333 deepslabs/deeps-node:pre-beta --chain=testbeta --name <name on telemetry>
 ```
 
 If you prefer to run in the background, please add `-d` to the docker command.
@@ -44,7 +44,7 @@ If you intend to run an RPC service that is externally accessible for applicatio
 More details can be found by executing the following command:
 
 ```shell
-docker run --rm safexn/deeps-node:pre-beta --help
+docker run --rm deepslabs/deeps-node:pre-beta --help
 ```
 
 ## Examples

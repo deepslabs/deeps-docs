@@ -78,7 +78,7 @@ cat > docker-compose.yaml <<EOF
 version: "3"
 services:
   node1:
-    image: safexn/deeps-node:pre-beta
+    image: deepslabs/deeps-node:pre-beta
     restart: always
     environment:
       RUST_LOG: info
@@ -193,7 +193,7 @@ Try the local solution [here](/docs/user-guide/DHC-maintaining/local-lan-configu
 
 ### Modify docker-compose File (Optional)
 
-You need to change the configuration here and replace the `<version_no>` only when the official image version is updated. Please refer to the [official release link](https://github.com/safexn/sxn-mining-scripts/blob/master/docker-compose.yml) for the exact version information.
+You need to change the configuration here and replace the `<version_no>` only when the official image version is updated. Please refer to the [official release link](https://github.com/deepslabs/deeps-mining-scripts/blob/master/docker-compose.yml) for the exact version information.
 
 <Callout>
 **Before changing version numbers, make sure your device is in Standby status, or not registered. Otherwise, you will be punished.**
@@ -207,7 +207,7 @@ The latest version of the image is: [**pre1.2.0**](https://github.com/deeps/deep
 version: "3"
 services:
   occlum-keyring:
-    image: safenx/deeps-occlum-keyring:<version_no>
+    image: deepslabs/deeps-occlum-keyring:<version_no>
     restart: always
 ...............
 ```

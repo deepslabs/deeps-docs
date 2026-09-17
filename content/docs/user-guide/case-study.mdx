@@ -70,19 +70,3 @@ For images with versions greater than `v0.12.8`, you need to add the `run` comma
 ### Case 11
 
 If you are using Ubuntu 24.04, you might encounter the `libssl.so.1.1: cannot open shared object file` error when running the `./sgx-detect` script. This issue arises because the system lacks the OpenSSL 1.1 library. Ubuntu 24.04 uses OpenSSL 3.0 by default, but some programs may still rely on the older OpenSSL 1.1 version. Forcing the installation of OpenSSL 1.1 might cause other issues, so it's advisable to disregard this problem.
-
-### Case 12
-
-When encountering this issue, it is likely because the image has not been pulled. To resolve this, execute the following to download the image:
-
-```bash
-docker pull safexn/deeps-node:v1.2.3
-```
-
-Subsequently, execute the following to modify the image name to correspond with the configuration file `docker-compose.yaml`:
-
-```bash
-docker tag safexn/deeps-node:v1.2.3 safexn/deeps-node:v1.2.3
-```
-
-Then, run `docker-compose up -d` again and use `docker-compose logs -f --tail 200` to check the logs and ensure the application is running normally.
