@@ -1,7 +1,8 @@
 {
-  "title": "Maintaining",
+  "title": "DHC Maintenance",
   "pages": [
     "index",
+    "maintaining",
     "local-lan-configuration-for-sgx"
   ]
 }

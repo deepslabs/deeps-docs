@@ -2,8 +2,7 @@
   "title": "User Guide",
   "pages": [
     "getting-started",
-    "maintaining",
-    "farming",
-    "troubleshooting"
+    "wallet-setup",
+    "farming"
   ]
 }

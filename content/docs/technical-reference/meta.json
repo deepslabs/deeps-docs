@@ -1,6 +1,8 @@
 {
   "title": "Technical Reference",
   "pages": [
+    "network-configuration",
+    "system-configuration",
     "committee-asset-fee-calculation"
   ]
 }
