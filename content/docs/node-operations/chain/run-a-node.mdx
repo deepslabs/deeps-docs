@@ -1,6 +1,6 @@
 ---
-title: Node Operators
-description: How to run a node on the DeepS Chain
+title: Run a Node
+description: Deploy and run a DeepS Chain node with Docker or chain snapshots
 ---
 
 ## Node Configuration
@@ -50,6 +50,30 @@ More details can be found by executing the following command:
 ```shell
 docker run --rm deepslabs/deeps-node:pre-beta --help
 ```
+
+### Using Snapshot
+
+To avoid syncing the chain from genesis, you can download a chain snapshot and start the node with pre-synced data:
+
+```shell
+wget -c -O node-data.tar.gz https://testnet-download.deeps.fi/node-data
+```
+
+The `-c` flag enables resume support, so the download can continue from where it stopped if interrupted.
+
+After the download completes, extract the archive into the node data directory:
+
+```shell
+tar -xzf node-data.tar.gz -C ./data
+```
+
+Then start the node with the data directory mounted:
+
+```shell
+docker run -p 30333:30333 -v ./data:/data deepslabs/deeps-node:pre-beta --chain=testbeta --name "<telemetry-name>"
+```
+
+The node will start from the snapshot height instead of syncing from genesis, which significantly reduces the initial sync time.
 
 ## Examples
 

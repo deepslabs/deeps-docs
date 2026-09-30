@@ -2,7 +2,7 @@
   "title": "DeepS Chain",
   "pages": [
     "index",
-    "node-operators",
+    "run-a-node",
     "validators"
   ]
 }
