@@ -2,13 +2,9 @@
   "title": "DeepS Docs",
   "pages": [
     "index",
-    "---Introduction---",
     "introduction",
-    "---User Guide---",
     "user-guide",
-    "---Node Operations---",
     "node-operations",
-    "---Technical Reference---",
     "technical-reference"
   ]
 }
