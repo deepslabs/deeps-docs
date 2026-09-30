@@ -1,40 +1,21 @@
 ---
 title: Run a Node
-description: Deploy and run a DeepS Chain node with Docker or chain snapshots
+description: Deploy and run a DeepS Chain node with Docker
 ---
 
-## Node Configuration
-
-### Prerequisites
-
-Below is a list of standard requirements for running nodes on the DeepS chain:
-
-1. **Operating system:** Ubuntu 18.04 or later with Linux kernel 5.16 or later.
-2. **Hardware:**
-   * CPU: 4 cores
-   * Memory: 16 GB RAM
-   * Storage: 1 TB SSD or HDD
-   * Network: At least 20 Mbps of bandwidth and a dedicated public IP address
-
 ## Node Initialization
-
-### Download Binaries
-
-<Callout type="warn">
-Building the node from source is not currently supported because the testnet node implementation is not yet open source.
-</Callout>
 
 ### Using Docker
 
 **Docker** is currently the supported method for running a DeepS beta-testnet node. Start a node with the image published by the DeepS team:
 
 ```shell
-docker run -p 30333:30333 deepslabs/deeps-node:pre-beta --chain=testbeta --name "<telemetry-name>"
+docker run -p 30333:30333 deepslabs/deeps-node:pre-beta --chain=testbeta --validator
 ```
 
 Add `-d` to run the container in the background.
 
-Add `-v ./data:/data` to persist node data on the host.
+Add `-v ./node-data:/data` to persist node data on the host.
 
 To expose RPC services to external applications such as Polkadot.js, add the following flags:
 
@@ -51,12 +32,12 @@ More details can be found by executing the following command:
 docker run --rm deepslabs/deeps-node:pre-beta --help
 ```
 
-### Using Snapshot
+### download Snapshot
 
 To avoid syncing the chain from genesis, you can download a chain snapshot and start the node with pre-synced data:
 
 ```shell
-wget -c -O node-data.tar.gz https://testnet-download.deeps.fi/node-data
+wget -c -O node-data.tar https://testnet-download.deeps.fi/node-data
 ```
 
 The `-c` flag enables resume support, so the download can continue from where it stopped if interrupted.
@@ -64,13 +45,13 @@ The `-c` flag enables resume support, so the download can continue from where it
 After the download completes, extract the archive into the node data directory:
 
 ```shell
-tar -xzf node-data.tar.gz -C ./data
+tar -xf node-data.tar
 ```
 
 Then start the node with the data directory mounted:
 
 ```shell
-docker run -p 30333:30333 -v ./data:/data deepslabs/deeps-node:pre-beta --chain=testbeta --name "<telemetry-name>"
+docker run -p 30333:30333 -v ./node-data:/data deepslabs/deeps-node:pre-beta --chain=testbeta --validator
 ```
 
 The node will start from the snapshot height instead of syncing from genesis, which significantly reduces the initial sync time.
